@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- App classes: includes MDC orderId / paymentId -->
+    <appender name="APP" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [TID=%X{traceId:-}][OID=%X{orderId:-}][PID=%X{paymentId:-}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Everything else (Spring, Kafka, etc.): no OID/PID -->
+    <appender name="DEFAULT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- All app code uses the MDC-aware format -->
+    <logger name="xyz.fakestore" level="INFO" additivity="false">
+        <appender-ref ref="APP" />
+    </logger>
+
+    <!-- Quiet modules -->
+    <logger name="xyz.fakestore.notifications" level="WARN" />
+    <logger name="xyz.fakestore.analytics" level="WARN" />
+
+    <!-- Kafka logging — set to INFO to debug connectivity, WARN for quiet -->
+    <logger name="org.apache.kafka" level="INFO" />
+    <logger name="org.springframework.kafka" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="DEFAULT" />
+    </root>
+
+</configuration>
+
+
