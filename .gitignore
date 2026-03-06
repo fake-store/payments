@@ -18,3 +18,4 @@ cluster/tmp/
 .venv
 
 /spec.md
+src/main/resources/application-local.properties
