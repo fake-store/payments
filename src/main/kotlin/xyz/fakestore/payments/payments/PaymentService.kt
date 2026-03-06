@@ -4,15 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.stereotype.Service
-import xyz.fakestore.payments.messagequeue.MessageSender
-import xyz.fakestore.payments.persistence.PaymentRepository
-import xyz.fakestore.payments.user.UserService
-import xyz.fakestore.payments.enumz.Topic
+import xyz.fakestore.payments.dto.UserPaymentMethod
 import xyz.fakestore.payments.dto.UserPaymentRequest
+import xyz.fakestore.payments.enumz.Topic
+import xyz.fakestore.payments.messagequeue.MessageSender
+import xyz.fakestore.payments.persistence.PaymentMethodRepository
+import xyz.fakestore.payments.persistence.PaymentRepository
+import java.util.*
 
 @Service
 class PaymentService(
-    private val userService: UserService,
+    private val paymentMethodRepository: PaymentMethodRepository,
     private val paymentRepository: PaymentRepository,
     private val messageSender: MessageSender,
     private val mapper: ObjectMapper,
@@ -46,7 +48,8 @@ class PaymentService(
             return
         }
 
-        val userPaymentMethod = userService.getUserPaymentMethod(userPaymentMethodId = request.userPaymentMethodId)
+        val userPaymentMethod = paymentMethodRepository.findById(request.userPaymentMethodId)
+            ?: throw IllegalArgumentException("Payment method not found: ${request.userPaymentMethodId}")
 
         val paymentProcessor = processorsByType[userPaymentMethod.type]
             ?: throw IllegalStateException("No processor registered for payment type: ${userPaymentMethod.type.simpleName}")
@@ -107,5 +110,14 @@ class PaymentService(
         } catch (e: Exception) {
             log.error("CRITICAL: Failed to send message to ${topic} for key ${key}: ${e.message}", e)
         }
+    }
+
+    fun findPaymentMethodsByUserId(userId: UUID): List<UserPaymentMethod> {
+        return paymentMethodRepository.findByUserId(userId)
+
+            // TODO: remove when poc is done
+            .ifEmpty {
+                (1..3).map { paymentMethodRepository.save(paymentMethodRepository.generateRandom(userId)) }
+            }
     }
 }

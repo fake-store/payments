@@ -2,19 +2,19 @@ package xyz.fakestore.payments
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeader
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.kafka.core.KafkaTemplate
-import xyz.fakestore.payments.dto.UserPaymentMethod
 import xyz.fakestore.payments.dto.UserPaymentRequest
 import xyz.fakestore.payments.enumz.Currency
 import xyz.fakestore.payments.enumz.Topic
+import xyz.fakestore.payments.persistence.PaymentMethodRepository
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 @SpringBootTest
@@ -23,23 +23,21 @@ class GenerateTestMessages {
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, String>
 
-    private val mapper = jacksonObjectMapper().apply { registerModule(JavaTimeModule()) }
+    @Autowired
+    private lateinit var paymentMethodRepository: PaymentMethodRepository
 
-    private val userPaymentMethods: List<UserPaymentMethod> = run {
-        val json = this::class.java.classLoader
-            .getResourceAsStream("user-payment-methods.json")
-            ?.bufferedReader()?.readText()
-            ?: throw IllegalStateException("user-payment-methods.json not found")
-        jacksonObjectMapper().readValue(json)
-    }
+    private val mapper = jacksonObjectMapper().apply { registerModule(JavaTimeModule()) }
 
     @Test
     fun `generate payment request messages`() {
-
         val howManyMessages = 5
+        val testUserId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+
+        // Provision some payment methods for the test user
+        val methods = (1..3).map { paymentMethodRepository.save(paymentMethodRepository.generateRandom(testUserId)) }
 
         for (i in 1..howManyMessages) {
-            val upm = userPaymentMethods.random()
+            val upm = methods.random()
             val traceId = randomUUID().toString().toByteArray()
 
             val userPaymentRequest = UserPaymentRequest(

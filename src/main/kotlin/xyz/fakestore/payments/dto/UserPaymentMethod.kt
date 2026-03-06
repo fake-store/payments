@@ -4,7 +4,7 @@ import java.util.*
 
 data class UserPaymentMethod(
     val userPaymentMethodId: UUID,
-    val userId: String,
+    val userId: UUID,
     val type: PaymentMethodTypeEnum,
     val label: String = "",
     val isDefault: Boolean = false,
