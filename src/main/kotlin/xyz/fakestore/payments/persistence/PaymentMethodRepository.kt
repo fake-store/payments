@@ -8,4 +8,5 @@ interface PaymentMethodRepository {
     fun findByUserId(userId: UUID): List<UserPaymentMethod>
     fun save(method: UserPaymentMethod): UserPaymentMethod
     fun generateRandom(userId: UUID): UserPaymentMethod
+    fun delete(id: UUID)
 }
