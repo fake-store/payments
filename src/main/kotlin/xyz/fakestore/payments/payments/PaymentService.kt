@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.stereotype.Service
+import xyz.fakestore.payments.dto.AddPaymentMethodRequest
+import xyz.fakestore.payments.dto.UpdatePaymentMethodRequest
 import xyz.fakestore.payments.dto.UserPaymentMethod
 import xyz.fakestore.payments.dto.UserPaymentRequest
 import xyz.fakestore.payments.enumz.Topic
@@ -119,5 +121,34 @@ class PaymentService(
             .ifEmpty {
                 (1..3).map { paymentMethodRepository.save(paymentMethodRepository.generateRandom(userId)) }
             }
+    }
+
+    fun addPaymentMethod(userId: UUID, request: AddPaymentMethodRequest): UserPaymentMethod {
+        val method = UserPaymentMethod(
+            userPaymentMethodId = UUID.randomUUID(),
+            userId = userId,
+            type = request.type,
+            label = request.label
+        )
+        return paymentMethodRepository.save(method)
+    }
+
+    fun updatePaymentMethod(userId: UUID, methodId: UUID, request: UpdatePaymentMethodRequest): UserPaymentMethod {
+        val existing = paymentMethodRepository.findById(methodId)
+            ?: throw NoSuchElementException("Payment method not found: $methodId")
+        if (existing.userId != userId) throw IllegalArgumentException("Payment method does not belong to user")
+        if (request.isDefault) {
+            paymentMethodRepository.findByUserId(userId).forEach {
+                if (it.isDefault) paymentMethodRepository.save(it.copy(isDefault = false))
+            }
+        }
+        return paymentMethodRepository.save(existing.copy(label = request.label, isDefault = request.isDefault))
+    }
+
+    fun deletePaymentMethod(userId: UUID, methodId: UUID) {
+        val existing = paymentMethodRepository.findById(methodId)
+            ?: throw NoSuchElementException("Payment method not found: $methodId")
+        if (existing.userId != userId) throw IllegalArgumentException("Payment method does not belong to user")
+        paymentMethodRepository.delete(methodId)
     }
 }
