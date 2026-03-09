@@ -1,5 +1,6 @@
 package xyz.fakestore.payments.dto
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 
 enum class PaymentMethodTypeEnum(
@@ -16,6 +17,7 @@ enum class PaymentMethodTypeEnum(
     companion object {
         private val bySimpleName = entries.associateBy { it.simpleName }
 
+        @JsonCreator
         fun fromSimpleName(name: String): PaymentMethodTypeEnum =
             bySimpleName[name]
                 ?: throw IllegalArgumentException("Unknown payment method type: $name")

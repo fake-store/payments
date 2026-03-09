@@ -21,6 +21,8 @@ class HashMapPaymentMethodRepository : PaymentMethodRepository {
         return method
     }
 
+    override fun delete(id: UUID) { live.remove(id) }
+
     override fun generateRandom(userId: UUID): UserPaymentMethod {
         val type = TYPES.random()
         val label = when (type) {
