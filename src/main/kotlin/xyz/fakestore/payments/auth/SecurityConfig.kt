@@ -15,7 +15,10 @@ class SecurityConfig(private val jwtFilter: JwtFilter) {
         http
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .authorizeHttpRequests { it.anyRequest().authenticated() }
+            .authorizeHttpRequests {
+                it.requestMatchers("/health").permitAll()
+                it.anyRequest().authenticated()
+            }
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
