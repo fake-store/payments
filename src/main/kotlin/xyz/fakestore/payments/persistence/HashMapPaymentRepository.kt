@@ -23,6 +23,10 @@ class HashMapPaymentRepository : PaymentRepository {
         return payments[id]
     }
 
+    override fun findByMethodIds(methodIds: Set<UUID>): List<UserPaymentRequest> {
+        return payments.values.filter { it.userPaymentMethodId in methodIds }
+    }
+
     override fun count(): Int {
         return payments.size
     }

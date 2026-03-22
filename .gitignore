@@ -19,3 +19,6 @@ cluster/tmp/
 
 /spec.md
 src/main/resources/application-local.properties
+
+# Local Docker dev profile (not committed)
+src/main/resources/application-docker.properties

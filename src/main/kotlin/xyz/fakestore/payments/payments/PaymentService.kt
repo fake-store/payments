@@ -114,6 +114,11 @@ class PaymentService(
         }
     }
 
+    fun getHistoryForUser(userId: UUID): List<UserPaymentRequest> {
+        val methodIds = paymentMethodRepository.findByUserId(userId).map { it.userPaymentMethodId }.toSet()
+        return paymentRepository.findByMethodIds(methodIds).sortedByDescending { it.createdAt }
+    }
+
     fun findPaymentMethodsByUserId(userId: UUID): List<UserPaymentMethod> {
         return paymentMethodRepository.findByUserId(userId)
 
