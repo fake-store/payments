@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*
 import xyz.fakestore.payments.dto.AddPaymentMethodRequest
 import xyz.fakestore.payments.dto.UpdatePaymentMethodRequest
 import xyz.fakestore.payments.dto.UserPaymentMethod
+import xyz.fakestore.payments.dto.UserPaymentRequest
 import xyz.fakestore.payments.payments.PaymentService
 import java.util.UUID
 
@@ -16,6 +17,16 @@ import java.util.UUID
 class PaymentController(
     private val paymentService: PaymentService
 ) {
+
+    @GetMapping("/history")
+    fun getHistory(
+        @RequestHeader(value = "X-Trace-Id", required = false) traceId: String?
+    ): List<UserPaymentRequest> {
+        if (traceId != null) MDC.put("traceId", traceId)
+        return try {
+            paymentService.getHistoryForUser(userId())
+        } finally { if (traceId != null) MDC.remove("traceId") }
+    }
 
     @GetMapping("/methods")
     fun getMethods(
