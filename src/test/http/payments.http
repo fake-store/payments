@@ -1,0 +1,64 @@
+### meant to be used with VS Code Http Client
+@host = http://localhost:8082
+
+### Login via users service to get a token first
+# @name login
+POST http://localhost:8081/api/users/login
+Content-Type: application/json
+
+{
+  "email": "{{fakestore_user_email}}",
+  "password": "{{fakestore_user_password}}"
+}
+
+###
+
+@token = {{login.response.body.token}}
+
+### Get payment methods
+GET {{host}}/api/payments/methods
+Authorization: Bearer {{token}}
+
+###
+
+### Add a payment method
+# @name addMethod
+POST {{host}}/api/payments/methods
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "type": "CreditCard",
+  "label": "Visa ending in 4242"
+}
+
+###
+
+@methodId = {{addMethod.response.body.userPaymentMethodId}}
+
+### Update a payment method
+POST {{host}}/api/payments/methods/{{methodId}}/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "label": "Visa ending in 4242 (updated)",
+  "isDefault": true
+}
+
+###
+
+### Delete a payment method
+POST {{host}}/api/payments/methods/{{methodId}}/delete
+Authorization: Bearer {{token}}
+
+###
+
+### Get payment history
+GET {{host}}/api/payments/history
+Authorization: Bearer {{token}}
+
+###
+
+### Health check
+GET {{host}}/health
